@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useWorkflows } from '@/hooks/useWorkflows';
 import { WorkflowSidebar } from '@/components/WorkflowSidebar';
 import { WorkflowCanvas } from '@/components/WorkflowCanvas';
+import { WorkflowEditorSidebar } from '@/components/WorkflowEditorSidebar';
 import { WorkflowInput } from '@/components/WorkflowInput';
 import { ExecutionLog } from '@/components/ExecutionLog';
 import { WorkflowHeader } from '@/components/WorkflowHeader';
@@ -173,9 +174,14 @@ export default function Home() {
           <div className="flex-1 flex overflow-hidden">
             
             {/* Visual Canvas or Hero */}
-            <div className="flex-1 relative">
+            <div className="flex-1 relative flex overflow-hidden">
               {selectedWorkflow ? (
-                <WorkflowCanvas workflow={selectedWorkflow} />
+                <>
+                  <WorkflowEditorSidebar />
+                  <div className="flex-1 relative">
+                    <WorkflowCanvas workflow={selectedWorkflow} onUpdate={saveWorkflow} />
+                  </div>
+                </>
               ) : (
                 <HeroSection onNew={handleNew} onGenerate={handleGenerate} />
               )}

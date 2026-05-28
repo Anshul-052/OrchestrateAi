@@ -1,0 +1,23 @@
+# Virtual Environments
+venv/
+backend/venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+frontend/node_modules/
+.next/
+frontend/.next/
+
+# Environment variables
+.env
+*.env
+.env.local
+
+# IDEs and OS
+.vscode/
+.idea/
+.DS_Store
+.gemini/
+.agents/

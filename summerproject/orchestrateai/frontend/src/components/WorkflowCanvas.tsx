@@ -23,7 +23,7 @@ import { workflowToFlow } from '@/lib/workflowToFlow';
 import { flowToWorkflow } from '@/lib/flowToWorkflow';
 import { Button } from './ui/Button';
 import { Save } from 'lucide-react';
-import { updateWorkflow } from '@/lib/api';
+import { api } from '@/lib/api';
 
 const nodeTypes = {
   trigger: TriggerNode,
@@ -102,7 +102,7 @@ function CanvasInner({ workflow, onUpdate }: WorkflowCanvasProps) {
     setIsSaving(true);
     try {
       const updatedDefinition = flowToWorkflow(nodes, edges, workflow);
-      const saved = await updateWorkflow(workflow.id, updatedDefinition);
+      const saved = await api.saveWorkflow({ id: workflow.id, ...updatedDefinition });
       if (onUpdate) {
         onUpdate(saved);
       }

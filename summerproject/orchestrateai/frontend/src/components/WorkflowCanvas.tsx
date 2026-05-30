@@ -24,6 +24,7 @@ import { flowToWorkflow } from '@/lib/flowToWorkflow';
 import { Button } from './ui/Button';
 import { Save } from 'lucide-react';
 import { api } from '@/lib/api';
+import { NodeConfigPanel } from './NodeConfigPanel';
 
 const nodeTypes = {
   trigger: TriggerNode,
@@ -39,6 +40,7 @@ function CanvasInner({ workflow, onUpdate }: WorkflowCanvasProps) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
     return workflow ? workflowToFlow(workflow) : { nodes: [], edges: [] };
@@ -114,6 +116,36 @@ function CanvasInner({ workflow, onUpdate }: WorkflowCanvasProps) {
     }
   };
 
+  const onNodeClick = useCallback((_: React.MouseEvent, node: any) => {
+    setSelectedNodeId(node.id);
+  }, []);
+
+  const onPaneClick = useCallback(() => {
+    setSelectedNodeId(null);
+  }, []);
+
+  const updateNodeConfig = useCallback((id: string, newConfig: any) => {
+    setNodes((nds) =>
+      nds.map((n) => {
+        if (n.id === id) {
+          return {
+            ...n,
+            data: {
+              ...n.data,
+              config: newConfig,
+            },
+          };
+        }
+        return n;
+      })
+    );
+  }, [setNodes]);
+
+  const selectedNode = useMemo(
+    () => nodes.find((n) => n.id === selectedNodeId),
+    [nodes, selectedNodeId]
+  );
+
   if (!workflow) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center bg-background border-l border-border">
@@ -135,6 +167,15 @@ function CanvasInner({ workflow, onUpdate }: WorkflowCanvasProps) {
         </Button>
       </div>
 
+      {selectedNode && (
+        <NodeConfigPanel
+          node={selectedNode as any}
+          onClose={() => setSelectedNodeId(null)}
+          onUpdate={updateNodeConfig}
+          workflowId={workflow.id}
+        />
+      )}
+
       <div className="flex-1" ref={reactFlowWrapper}>
         <ReactFlow
           nodes={nodes}
@@ -145,6 +186,8 @@ function CanvasInner({ workflow, onUpdate }: WorkflowCanvasProps) {
           onInit={setReactFlowInstance}
           onDrop={onDrop}
           onDragOver={onDragOver}
+          onNodeClick={onNodeClick}
+          onPaneClick={onPaneClick}
           nodeTypes={nodeTypes}
           connectionMode={ConnectionMode.Loose}
           fitView

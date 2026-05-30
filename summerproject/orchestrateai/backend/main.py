@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import workflows, runs
+from routes import workflows, runs, webhooks
 
 app = FastAPI(title="OrchestrateAi API")
 
@@ -14,6 +14,7 @@ app.add_middleware(
 
 app.include_router(workflows.router)
 app.include_router(runs.router)
+app.include_router(webhooks.router)
 
 @app.get("/health")
 def health_check():

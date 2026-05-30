@@ -7,7 +7,7 @@ from database import get_db
 from models.workflow import Workflow
 from models.workflow_run import WorkflowRun
 from schemas.workflow_run import WorkflowRunResponse
-from services.execution_simulator import simulate_execution
+from services.engine import execute_workflow_live
 from services.workflow_runner import create_workflow_run
 
 router = APIRouter(prefix="/api/workflows", tags=["runs"])
@@ -23,7 +23,7 @@ async def run_workflow(id: str, db: AsyncSession = Depends(get_db)):
     
     await create_workflow_run(db, id)
     
-    return EventSourceResponse(simulate_execution(workflow.definition))
+    return EventSourceResponse(execute_workflow_live(workflow.definition))
 
 @router.get("/{id}/runs", response_model=list[WorkflowRunResponse])
 async def get_workflow_runs(id: str, db: AsyncSession = Depends(get_db)):

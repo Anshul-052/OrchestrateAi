@@ -102,7 +102,7 @@ function CanvasInner({ workflow, onUpdate }: WorkflowCanvasProps) {
     setIsSaving(true);
     try {
       const updatedDefinition = flowToWorkflow(nodes, edges, workflow);
-      const saved = await api.saveWorkflow({ id: workflow.id, ...updatedDefinition });
+      const saved = await api.saveWorkflow(updatedDefinition);
       if (onUpdate) {
         onUpdate(saved);
       }

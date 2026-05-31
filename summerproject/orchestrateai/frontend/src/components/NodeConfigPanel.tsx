@@ -55,14 +55,26 @@ export function NodeConfigPanel({ node, onClose, onUpdate, workflowId }: NodeCon
 
         {node.type === 'action' && (
           <div className="flex flex-col gap-2">
-            <label className="text-sm text-foreground">AI Instructions</label>
+            <label className="text-sm text-foreground">
+              {node.data.type === 'filter' ? 'Condition Logic' : 
+               node.data.type === 'delay' ? 'Delay Duration' : 
+               node.data.type === 'formatter' ? 'Formatting Rules' : 'AI Instructions'}
+            </label>
             <p className="text-xs text-muted-foreground mb-1">
-              Tell the Universal AI Node what to do with the data from previous steps, or specify an API it should call.
+              {node.data.type === 'filter' ? 'Explain the condition. The workflow will stop if this condition is not met by the data.' : 
+               node.data.type === 'delay' ? 'Specify how long to wait (e.g. "2 hours" or "30 seconds").' : 
+               node.data.type === 'formatter' ? 'Explain how to format the data (e.g. "Extract all dates into a JSON array").' : 
+               'Tell the Universal AI Node what to do with the data from previous steps, or specify an API it should call.'}
             </p>
             <textarea 
               value={node.data.config?.prompt || ''}
               onChange={handlePromptChange}
-              placeholder="e.g., Send a slack message to #general with the summary..."
+              placeholder={
+                node.data.type === 'filter' ? 'e.g., Only continue if the email body contains "Urgent"' : 
+                node.data.type === 'delay' ? 'e.g., Wait for 10 minutes' : 
+                node.data.type === 'formatter' ? 'e.g., Convert the summary into a bulleted markdown list' : 
+                'e.g., Send a slack message to #general with the summary...'
+              }
               className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm text-foreground h-32 resize-none outline-none focus:border-primary transition-colors"
             />
           </div>

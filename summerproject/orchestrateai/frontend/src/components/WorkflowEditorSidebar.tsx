@@ -14,6 +14,12 @@ const actionTypes = [
   { type: 'send_email', label: 'Send Email' },
 ];
 
+const logicTypes = [
+  { type: 'filter', label: 'Filter / Condition' },
+  { type: 'delay', label: 'Delay execution' },
+  { type: 'formatter', label: 'Data Formatter' },
+];
+
 export function WorkflowEditorSidebar() {
   const onDragStart = (event: React.DragEvent, nodeType: string, isTrigger: boolean) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
@@ -50,6 +56,22 @@ export function WorkflowEditorSidebar() {
               draggable
             >
               {a.label}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Logic & Formatting</h3>
+        <div className="flex flex-col gap-2">
+          {logicTypes.map((l) => (
+            <div
+              key={l.type}
+              className="p-3 bg-background border border-border rounded-md cursor-grab active:cursor-grabbing hover:border-yellow-500/50 transition-colors text-sm font-medium flex items-center justify-center text-center text-yellow-500/90"
+              onDragStart={(event) => onDragStart(event, l.type, false)}
+              draggable
+            >
+              {l.label}
             </div>
           ))}
         </div>

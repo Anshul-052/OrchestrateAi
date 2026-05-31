@@ -16,10 +16,11 @@ Action to execute:
 Type: {action.get('type')}
 Config: {json.dumps(action.get('config', {}))}
 
-Analyze the Action and State. 
-Decide if you need to:
-1. Make an HTTP request to an external API (e.g., Slack webhook, Zapier webhook, send email via API, etc.)
-2. Or just transform data locally (e.g., summarize the state data).
+Analyze the Action and State. Decide if you need to:
+1. Evaluate a condition against the state (if Type is 'filter').
+2. Calculate delay seconds from natural language (if Type is 'delay').
+3. Transform data locally (if Type is 'formatter' or standard action without API).
+4. Make an HTTP request to an external API (if Type is an integration action).
 
 Return ONLY raw JSON matching this schema exactly:
 {{
@@ -30,6 +31,8 @@ Return ONLY raw JSON matching this schema exactly:
      "headers": {{"Content-Type": "application/json"}},
      "body": {{}}
   }},
+  "filter_passed": boolean (true if condition met, false if not met. Only for 'filter'),
+  "delay_seconds": integer (number of seconds to wait. Only for 'delay'),
   "result": "Put transformed data here if execute_http is false, otherwise null"
 }}
 """
@@ -69,7 +72,7 @@ Return ONLY raw JSON matching this schema exactly:
             )
             return {"status_code": api_res.status_code, "response": api_res.text}
     else:
-        return {"result": ai_resp.get("result")}
+        return ai_resp
 
 async def execute_workflow_live(workflow_definition: Dict[str, Any], initial_state: Dict[str, Any] = None):
     yield ServerSentEvent(
@@ -95,6 +98,20 @@ async def execute_workflow_live(workflow_definition: Dict[str, Any], initial_sta
         try:
             action_result = await execute_universal_action(action, state)
             state[action.get('id')] = action_result
+            
+            if action.get('type') == 'filter' and action_result.get('filter_passed') is False:
+                yield ServerSentEvent(
+                    data=json.dumps({'status': 'completed', 'step': 'action_result', 'id': action.get('id'), 'result': 'Workflow halted: Filter condition not met.', 'timestamp': datetime.utcnow().isoformat()}),
+                    event='update'
+                )
+                return # Stop execution entirely
+                
+            if action.get('type') == 'delay':
+                delay_sec = min(action_result.get('delay_seconds', 0), 10) # limit to 10s for SSE MVP
+                if delay_sec > 0:
+                    import asyncio
+                    yield ServerSentEvent(data=json.dumps({'status': 'running', 'step': 'delay', 'seconds': delay_sec, 'id': action.get('id')}), event='update')
+                    await asyncio.sleep(delay_sec)
             
             yield ServerSentEvent(
                 data=json.dumps({'status': 'running', 'step': 'action_result', 'id': action.get('id'), 'result': action_result, 'timestamp': datetime.utcnow().isoformat()}),
